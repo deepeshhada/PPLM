@@ -28,7 +28,7 @@ torch.manual_seed(0)
 np.random.seed(0)
 EPSILON = 1e-10
 example_sentence = "This is incredible! I love it, this is the best chicken I have ever had."
-max_length_seq = 100
+max_length_seq = 200
 
 
 class Discriminator(torch.nn.Module):
@@ -297,10 +297,10 @@ def get_generic_dataset(dataset_fp, tokenizer, device,
                         )
 
                     else:
-                        print(
-                            "Line {} is longer than maximum length {}".format(
-                                i, max_length_seq
-                            ))
+                        # print(
+                        #     "Line {} is longer than maximum length {}".format(
+                        #         i, max_length_seq
+                        #     ))
                         continue
 
                     x.append(seq)
@@ -309,7 +309,7 @@ def get_generic_dataset(dataset_fp, tokenizer, device,
                 except:
                     print("Error tokenizing line {}, skipping it".format(i))
                     pass
-
+    print("Final dataset size:", len(x))
     return Dataset(x, y)
 
 
