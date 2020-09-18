@@ -234,8 +234,10 @@ def main():
     parser.add_argument('--dataset-label', type=str, default='SST',choices=('SST', 'clickbait', 'toxic'))
     args = parser.parse_args()
 
+    print(args)
+
     batch_size = args.batch_size
-    device = 'cuda'
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     # load sst
     if args.dataset_label == 'SST':
         text = torchtext_data.Field()
@@ -245,7 +247,39 @@ def main():
                                                               )
         x = []
         y = []
-        d = {"positive": 0, "negative": 1, "very positive": 2, "very negative": 3, "neutral": 4}
+        # d = {"positive": 0, "negative": 1, "very positive": 2, "very negative": 3, "neutral": 4}
+        d = {"very negative": 1, "negative": 2, "neutral": 3, "positive": 4, "very positive": 5}
+
+
+        for i in range(len(train_data)):
+            seq = TreebankWordDetokenizer().detokenize(vars(train_data[i])["text"])
+            seq = tokenizer.encode(seq)
+            seq = torch.tensor(seq, device=device, dtype=torch.long)
+            x.append(seq)
+            y.append(d[vars(train_data[i])["label"]])
+
+        dataset = Dataset(x, y)
+
+        test_x = []
+        test_y = []
+        for i in range(len(test_data)):
+            seq = TreebankWordDetokenizer().detokenize(vars(test_data[i])["text"])
+            seq = tokenizer.encode(seq)
+            seq = torch.tensor([50256] + seq, device=device, dtype=torch.long)
+            test_x.append(seq)
+            test_y.append(d[vars(test_data[i])["label"]])
+        test_dataset = Dataset(test_x, test_y)
+        discriminator = Discriminator2mean(class_size=5).to(device)
+
+    if args.dataset_label == 'AmazonDigitalMusic':
+        text = torchtext_data.Field()
+        label = torchtext_data.Field(sequential=False)
+        train_data, val_data, test_data = datasets.SST.splits(text, label, fine_grained=True, train_subtrees=True,
+                                                              # filter_pred=lambda ex: ex.label != 'neutral'
+                                                              )
+        x = []
+        y = []
+        d = {"very negative": 1, "negative": 2, "neutral": 3, "positive": 4, "very positive": 5}
 
         for i in range(len(train_data)):
             seq = TreebankWordDetokenizer().detokenize(vars(train_data[i])["text"])
@@ -297,37 +331,6 @@ def main():
         dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
         discriminator = Discriminator2mean(class_size=2).to(device)
 
-    elif args.dataset_label == 'toxic':
-        # data = pickle.load(open("/home/gilocal/lab/exp/language/datasets/clickbait/clickbait.p", "r"))
-        with open("datasets/toxic/toxic_train.txt") as f:
-            data = []
-            for d in f:
-                data.append(eval(d))
-
-        x = []
-        y = []
-        for d in data:
-            try:
-                # seq = tokenizer.encode("Apple's iOS 9 'App thinning' feature will give your phone's storage a boost")
-                seq = tokenizer.encode(d["text"])
-
-                device = 'cuda'
-                if(len(seq)<100):
-                    seq = torch.tensor([50256] + seq, device=device, dtype=torch.long)
-                else:
-                    continue
-                x.append(seq)
-                y.append(int(np.sum(d['label'])>0))
-            except:
-                pass
-
-        dataset = Dataset(x, y)
-        print(dataset)
-        print(len(dataset))
-        train_size = int(0.9 * len(dataset))
-        test_size = len(dataset) - train_size
-        dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
-        discriminator = Discriminator2mean(class_size=2).to(device)
 
     data_loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=batch_size,
