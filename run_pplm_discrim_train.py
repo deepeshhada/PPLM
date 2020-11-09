@@ -28,7 +28,7 @@ torch.manual_seed(0)
 np.random.seed(0)
 EPSILON = 1e-10
 example_sentence = "This is incredible! I love it, this is the best chicken I have ever had."
-max_length_seq = 80
+max_length_seq = 200
 
 
 class Discriminator(torch.nn.Module):
@@ -614,9 +614,22 @@ def train_discriminator(
         test_losses.append(test_loss)
         test_accuracies.append(test_accuracy)
 
-        print("\nExample prediction")
-        predict(example_sentence, discriminator, idx2class,
-                cached=cached, device=device)
+        # print("\nExample prediction")
+        # predict(example_sentence, discriminator, idx2class,
+        #         cached=cached, device=device)
+
+        example_sentences = [
+            "This is incredible! I love it, this is the best chicken I have ever had.",
+            "The chicken is good, nice and tender, but a little too spicy.",
+            "The game sometimes impresses, sometimes doesn't. I have mixed feelings.",
+            "Poorly written script. They could've made it much better.",
+            "I absolutely hate it! This is the worst game I have ever played."
+        ]
+        print("\nExample predictions")
+        for i in range(5):
+            predict(example_sentences[i], discriminator, idx2class,
+                    cached=cached, device=device)
+
 
         if save_model:
             # torch.save(discriminator.state_dict(),
