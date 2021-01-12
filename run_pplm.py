@@ -833,6 +833,15 @@ def run_pplm_example(
 
             print("= Perturbed generated text {} =".format(i + 1))
             print(pert_gen_text)
+            eos_token = '<|endoftext|>'
+            print('='*100)
+            with open('./generated_reviews.txt', 'a') as f:
+                lines = pert_gen_text.splitlines()
+                lines = lines[0].lstrip(eos_token)
+                lines = lines.split(eos_token, 1)[0]
+                lines = lines.rstrip('\n')
+                f.write(lines)
+                f.write('\n')
             print()
         except:
             pass
