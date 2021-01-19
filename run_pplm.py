@@ -842,7 +842,7 @@ def run_pplm_example(
                 lines = lines.rstrip('\n')
                 f.write(lines)
                 f.write('\n')
-            print()
+            # print()
         except:
             pass
 
